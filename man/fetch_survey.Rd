@@ -25,12 +25,9 @@ fetch_survey(
   strip_html = TRUE,
   col_types = NULL,
   quiet = FALSE,
-  responses,
+  responses = c("complete", "in_progress", "all"),
   verbose = TRUE,
-  tmp_dir = tempdir(),
-  last_response = deprecated(),
-  force_request = deprecated(),
-  save_dir = deprecated()
+  tmp_dir = tempdir()
 )
 }
 \arguments{
@@ -137,12 +134,6 @@ in compressed (zip) form. To extract raw data, the zip file must be briefly
 written to disk (the file is then promptly deleted). By default, the
 system's temporary directory is used for this (see \code{\link[=tempdir]{tempdir()}}), but
 users needing more control can specify an alternate location here.}
-
-\item{last_response}{Deprecated.}
-
-\item{force_request}{Deprecated.}
-
-\item{save_dir}{Deprecated.}
 }
 \description{
 Download a Qualtrics survey you own via API and import the survey directly
