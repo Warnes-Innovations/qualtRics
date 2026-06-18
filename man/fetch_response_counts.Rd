@@ -7,7 +7,7 @@
 fetch_response_counts(
   surveyIDs,
   survey_names = names(surveyIDs),
-  type = c("all", "distributions", "metadata", "responses")
+  type = c("all", "distributions", "metadata", "in_progress")
 )
 }
 \arguments{
@@ -28,13 +28,13 @@ Metadata API (\code{\link[=metadata]{metadata()}}) for every survey.}
 One or more of:
 \describe{
 \item{\code{"distributions"}}{Distributions API columns (\verb{dist_*}).}
-\item{\code{"metadata"}}{Metadata API columns (\verb{meta_*}) and the derived
-\code{meta_response_rate}.}
-\item{\code{"responses"}}{Response Export API columns (\verb{export_*}) and the
-derived \code{export_response_rate}.}
+\item{\code{"metadata"}}{Metadata API columns (\verb{meta_*}).}
+\item{\code{"in_progress"}}{Response Export API column (\code{export_in_progress}).
+Adds one extra API call per survey but provides an authoritative
+all-channels in-progress count.}
 \item{\code{"all"}}{All of the above (default).}
 }
-Multiple values may be combined, e.g. \code{type = c("metadata", "responses")}.}
+Multiple values may be combined, e.g. \code{type = c("distributions", "metadata")}.}
 }
 \value{
 A tibble with one row per survey and a \code{survey_id} / \code{survey_name}
@@ -43,41 +43,43 @@ identifier pair, followed by the requested source groups:
 \strong{Distributions API} (\code{type} includes \code{"distributions"}; tracked email
 sends only — excludes anonymous/direct-link access):
 \describe{
-\item{dist_invited}{Contacts sent a distribution link (\code{stats_sent}).}
+\item{dist_invited}{Unique contacts sent an initial invite
+(\code{stats_sent} from the earliest \code{requestType == "Invite"} distribution
+per mailing list). Reminder and ThankYou distributions are excluded.
+When a mailing list was re-invited (e.g. after a link with a short
+expiration date), only the first send is counted so that the same
+contacts are not double-counted.}
 \item{dist_in_progress}{Started but not submitted via a tracked link
 (\code{stats_started - stats_finished}). Lower-bound estimate.}
 \item{dist_completed}{Submitted via a tracked link (\code{stats_finished}).
 Undercounts responses arriving via anonymous or direct links.}
+\item{dist_response_rate_complete}{\code{dist_completed / dist_invited}.
+\code{NA} when \code{dist_invited == 0}.}
+\item{dist_response_rate_total}{\code{(dist_completed + dist_in_progress) / dist_invited}.
+\code{NA} when \code{dist_invited == 0}.}
 }
 
 \strong{Metadata API} (\code{type} includes \code{"metadata"}; all channels):
 \describe{
 \item{meta_completed}{All submitted responses regardless of channel
 (\code{responsecounts$auditable}). \strong{Authoritative completed count.}}
-\item{meta_response_rate}{\code{meta_completed / dist_invited}. Requires
-\code{"distributions"} to also be included; \code{NA} otherwise or when
-\code{dist_invited == 0}.}
+\item{meta_response_rate}{\code{meta_completed / dist_invited}. The
+Distributions API is fetched internally even when \code{type = "metadata"}
+to provide the denominator. \code{NA} when \code{dist_invited == 0}.}
 }
 
-\strong{Response Export API} (\code{type} includes \code{"responses"}; all channels):
+\strong{Response Export API} (\code{type} includes \code{"in_progress"}; all channels):
 \describe{
-\item{export_completed}{Submitted responses across all channels, from
-\code{fetch_survey(responses = "complete")}. \strong{Authoritative completed
-count} (cross-check for \code{meta_completed}).}
 \item{export_in_progress}{Responses currently in-progress across all
-channels, from \code{fetch_survey(responses = "in_progress")}.
-\strong{Authoritative in-progress count.}}
-\item{export_response_rate}{\code{export_completed / dist_invited}. Requires
-\code{"distributions"} to also be included; \code{NA} otherwise or when
-\code{dist_invited == 0}.}
+channels. \strong{Authoritative all-channels in-progress count.}}
 }
 }
 \description{
-Retrieves a summary of survey participation from three Qualtrics API
-sources: the Distributions API (invited/started/finished per tracked email
-send), the Metadata API (authoritative submitted-response count across all
-channels), and the Response Export API (authoritative in-progress and
-completed counts across all channels).
+Retrieves a summary of survey participation from up to three Qualtrics API
+sources depending on the \code{type} argument: the Distributions API
+(invited/started/finished per tracked email send), the Metadata API
+(authoritative submitted-response count across all channels), and the
+Response Export API (authoritative in-progress count across all channels).
 }
 \details{
 If the request to the Qualtrics API made by this function fails, the request
@@ -118,7 +120,10 @@ fetch_response_counts(
 # Force name resolution via the API even when surveyIDs has names
 fetch_response_counts(surveys$id[1:3], survey_names = NULL)
 
-# Only metadata and response-export counts (skip Distributions API)
-fetch_response_counts(surveys$id[1:3], type = c("metadata", "responses"))
+# Only metadata counts (Distributions API fetched internally for the rate)
+fetch_response_counts(surveys$id[1:3], type = "metadata")
+
+# Skip the slow in-progress export call
+fetch_response_counts(surveys$id[1:3], type = c("distributions", "metadata"))
 }
 }

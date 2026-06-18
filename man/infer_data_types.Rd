@@ -4,7 +4,7 @@
 \alias{infer_data_types}
 \title{Set proper data types on survey data.}
 \usage{
-infer_data_types(data, surveyID, verbose = FALSE)
+infer_data_types(data, surveyID, verbose = FALSE, col_types = NULL)
 }
 \arguments{
 \item{data}{Imported Qualtrics survey}

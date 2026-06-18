@@ -11,3 +11,9 @@ inst/doc
 *sqlite
 *.log
 .Renviron
+
+# Local renv usage — keep renv available locally without committing it to the
+# repo (this fork is installed from GitHub by the sngDashboard build).
+.Rprofile
+/renv/
+renv.lock

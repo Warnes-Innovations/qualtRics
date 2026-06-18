@@ -33,7 +33,6 @@ Imports:
     glue,
     httr,
     jsonlite,
-    lifecycle,
     lubridate,
     memoise,
     purrr,

@@ -1,3 +1,6 @@
+^renv$
+^renv\.lock$
+^\.Rprofile$
 ^docs$
 ^_pkgdown\.yml$
 ^LICENSE\.md$
@@ -31,3 +34,5 @@ Changelog\.md$
 ^codecov\.yml$
 ^man-roxygen$
 ^CRAN-SUBMISSION$
+
+^tests-fetch-survey\.log$
